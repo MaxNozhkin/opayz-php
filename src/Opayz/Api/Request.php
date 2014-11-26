@@ -118,17 +118,22 @@ class Request {
 
     public function getEncodedXml() {
         if ($this->isValid()) {
-            $this->generateXml();
+        	$this->generateXml();
+            $this->packingXml();
             $this->sign();
-            return [$this->xml, $this->signature];
+            return [$this->packingXml, $this->signature];
         }
         return false;
+    }
+    
+    protected function packingXml() {
+    	$this->packingXml = base64_encode($this->xml);
     }
 
     protected function generateXml() {
         $this->xml = sprintf(
             self::XML_TEMPLATE,
-            $this->posId,
+            $this->pointOfSale,
             $this->orderId,
             $this->amount,
             $this->currency,
@@ -136,9 +141,10 @@ class Request {
             $this->serverUrl,
             $this->callbackUrl
         );
+        return $this;
     }
 
     protected function sign() {
-        $this->signature = base64_encode(sha1($this->xml . $this->merchantSecret));
+        $this->signature = base64_encode(sha1($this->xml . $this->merchantSecret, 1));
     }
 }
